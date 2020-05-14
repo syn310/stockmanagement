@@ -1,0 +1,53 @@
+apiVersion : apps/v1beta1
+kind: Deployment
+metadata:
+  name: stock
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: stock
+    spec:
+      containers:
+        - name: stock
+          image: ccteam4acr.azurecr.io/stock
+          ports:
+            - containerPort: 8082
+          resources:
+            limits:
+              cpu: 500m
+            requests:
+              cpu: 200m
+          livenessProbe:
+            httpGet:
+              path: /stocks
+              port: 8080
+              scheme: HTTP
+            initialDelaySeconds: 5
+            periodSeconds: 30
+            timeoutSeconds: 5
+          readinessProbe:
+            httpGet:
+              path: /stocks
+              port: 8080
+              scheme: HTTP
+            initialDelaySeconds: 5
+            periodSeconds: 15
+            timeoutSeconds: 5
+          env:
+            - name: EMBED_TOMCAT_JAVA_OPTS
+              valueFrom:
+                configMapKeyRef:
+                  name: spring-dev
+                  key: JAVA_OPTS
+            - name: DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: db-dev
+                  key: DB_USER
+            - name: DB_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: db-dev
+                  key: DB_PASS
